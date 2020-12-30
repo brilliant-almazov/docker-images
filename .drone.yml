@@ -16,20 +16,33 @@ environment:
 
 steps:
     - &docker
-        name: docker
+        name: docker hub login
         image: docker:20.10.1
         volumes:
             -   name: docker.sock
                 path: /var/run/docker.sock
         commands:
+            - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+        environment:
+            DOCKER_USERNAME:
+                from_secret: docker_username
+            DOCKER_PASSWORD:
+                from_secret: docker_password
+
+    -   <<: *docker
+        name: docker
+        commands:
             - docker build -t "automagistre/docker" --progress=plain --target docker .
+            - docker push "automagistre/docker"
 
     -   <<: *docker
         name: wait for it
         commands:
             - docker build -t "automagistre/wait-for-it" --progress=plain --target wait-for-it .
+            - docker push "automagistre/wait-for-it"
 
     -   <<: *docker
         name: docker compose
         commands:
             - docker build -t "automagistre/docker-compose" --progress=plain --target docker-compose .
+            - docker push "automagistre/docker-compose"
