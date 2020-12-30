@@ -33,7 +33,6 @@ steps:
     - &builder
         <<: *docker
         name: docker
-        image: docker:20.10.1
         commands:
             - docker build -t "automagistre/$DRONE_STEP_NAME" --progress=plain --target "$DRONE_STEP_NAME" .
             - docker push "automagistre/$DRONE_STEP_NAME"
@@ -43,5 +42,5 @@ steps:
     -   <<: *builder
         name: wait-for-it
 
-    -   <<: *docker
+    -   <<: *builder
         name: docker-compose
