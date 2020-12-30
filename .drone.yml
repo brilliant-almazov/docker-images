@@ -16,7 +16,7 @@ environment:
 
 steps:
     - &docker
-        name: docker hub login
+        name: docker login
         image: docker:20.10.1
         volumes:
             -   name: docker.sock
@@ -34,15 +34,21 @@ steps:
         commands:
             - docker build -t "automagistre/docker" --progress=plain --target docker .
             - docker push "automagistre/docker"
+        depends_on:
+            - docker login
 
     -   <<: *docker
         name: wait for it
         commands:
             - docker build -t "automagistre/wait-for-it" --progress=plain --target wait-for-it .
             - docker push "automagistre/wait-for-it"
+        depends_on:
+            - docker login
 
     -   <<: *docker
         name: docker compose
         commands:
             - docker build -t "automagistre/docker-compose" --progress=plain --target docker-compose .
             - docker push "automagistre/docker-compose"
+        depends_on:
+            - docker login
