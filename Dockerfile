@@ -17,3 +17,8 @@ RUN --mount=type=cache,target=/var/cache/apk \
     && curl https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -o ${WAIT_FOR_IT} \
     && chmod +x ${WAIT_FOR_IT} \
     && apk del .build-deps
+
+#
+# Docker Compose
+#
+FROM docker/compose:1.27.4 as docker-compose

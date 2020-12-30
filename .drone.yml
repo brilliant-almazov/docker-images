@@ -28,3 +28,8 @@ steps:
         name: wait for it
         commands:
             - docker build -t "automagistre/wait-for-it" --progress=plain --target wait-for-it .
+
+    -   <<: *docker
+        name: docker compose
+        commands:
+            - docker build -t "automagistre/docker-compose" --progress=plain --target docker-compose .
