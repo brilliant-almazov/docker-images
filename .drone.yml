@@ -1,0 +1,30 @@
+---
+kind: pipeline
+type: docker
+name: default
+
+clone:
+    depth: 1
+
+volumes:
+    -   name: docker.sock
+        host:
+            path: /var/run/docker.sock
+
+environment:
+    DOCKER_BUILDKIT: '1'
+
+steps:
+    - &docker
+        name: docker
+        image: docker:20.10.1
+        volumes:
+            -   name: docker.sock
+                path: /var/run/docker.sock
+        commands:
+            - docker build -t "automagistre/docker" --progress=plain --target docker .
+
+    -   <<: *docker
+        name: wait for it
+        commands:
+            - docker build -t "automagistre/wait-for-it" --progress=plain --target wait-for-it .
