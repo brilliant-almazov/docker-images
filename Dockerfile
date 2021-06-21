@@ -22,3 +22,18 @@ RUN --mount=type=cache,target=/var/cache/apk \
 # Docker Compose
 #
 FROM docker/compose:1.27.4 as docker-compose
+
+#
+# GitHub CLI
+#
+FROM alpine:3.14.0 AS github-cli
+ENV GITHUB_CLI_VERSION 1.11.0
+
+RUN --mount=type=cache,target=/var/cache/apk \
+    set -ex \
+    && apk add curl --virtual .build-deps \
+    && curl -L https://github.com/cli/cli/releases/download/v${GITHUB_CLI_VERSION}/gh_${GITHUB_CLI_VERSION}_linux_amd64.tar.gz | tar xz \
+    && mv gh_${GITHUB_CLI_VERSION}_linux_amd64/bin/gh /bin/gh \
+    && chmod +x /bin/gh \
+    && apk del .build-deps \
+    && rm -rf gh_${GITHUB_CLI_VERSION}_linux_amd64

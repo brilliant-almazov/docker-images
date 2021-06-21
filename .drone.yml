@@ -44,3 +44,6 @@ steps:
 
     -   <<: *builder
         name: docker-compose
+
+    -   <<: *builder
+        name: github-cli
