@@ -31,6 +31,7 @@ ENV GITHUB_CLI_VERSION 1.11.0
 
 RUN --mount=type=cache,target=/var/cache/apk \
     set -ex \
+    && apk add git \
     && apk add curl --virtual .build-deps \
     && curl -L https://github.com/cli/cli/releases/download/v${GITHUB_CLI_VERSION}/gh_${GITHUB_CLI_VERSION}_linux_amd64.tar.gz | tar xz \
     && mv gh_${GITHUB_CLI_VERSION}_linux_amd64/bin/gh /bin/gh \
