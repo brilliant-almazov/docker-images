@@ -21,7 +21,7 @@ RUN --mount=type=cache,target=/var/cache/apk \
 #
 # Docker Compose
 #
-FROM docker/compose:1.27.4 as docker-compose
+FROM docker/compose:1.29.2 as docker-compose
 
 #
 # GitHub CLI
