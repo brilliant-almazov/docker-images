@@ -1,7 +1,7 @@
 #
 # Docker Builder
 #
-FROM docker:20.10.1 AS docker
+FROM docker:20.10.7 AS docker
 
 ENV DOCKER_BUILDKIT 1
 
