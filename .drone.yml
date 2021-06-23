@@ -40,6 +40,9 @@ steps:
             - docker login
 
     -   <<: *builder
+        name: git
+
+    -   <<: *builder
         name: wait-for-it
 
     -   <<: *builder

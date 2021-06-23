@@ -1,4 +1,9 @@
 #
+# git
+#
+FROM alpine/git:v2.30.2 AS git
+
+#
 # Docker Builder
 #
 FROM docker:20.10.7 AS docker
