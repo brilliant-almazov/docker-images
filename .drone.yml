@@ -3,6 +3,10 @@ kind: pipeline
 type: docker
 name: default
 
+trigger:
+    event:
+        - push
+
 clone:
     depth: 1
 
@@ -16,9 +20,20 @@ environment:
     DOCKER_CONFIG: /drone/src/.docker
 
 steps:
-    -   name: build and push
+    -   name: build
         image: automagistre/docker:stable
         pull: if-not-exists
+        volumes:
+            -   name: docker.sock
+                path: /var/run/docker.sock
+        commands:
+            - |
+                for image in $(grep -ioP 'FROM .+ AS \K.+' Dockerfile) ; do
+                    docker build -t automagistre/$image:${DRONE_BUILD_NUMBER} --progress=plain --target $image .
+                done
+
+    -   name: push
+        image: automagistre/docker:stable
         volumes:
             -   name: docker.sock
                 path: /var/run/docker.sock
@@ -26,7 +41,7 @@ steps:
             - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
             - |
                 for image in $(grep -ioP 'FROM .+ AS \K.+' Dockerfile) ; do
-                    docker build -t "automagistre/$image:stable" --progress=plain --target $image .
+                    docker tag automagistre/$image:${DRONE_BUILD_NUMBER} automagistre/$image:stable
                     docker push "automagistre/$image:stable"
                 done
         environment:
@@ -34,3 +49,79 @@ steps:
                 from_secret: docker_username
             DOCKER_PASSWORD:
                 from_secret: docker_password
+        when:
+            branch: master
+        depends_on:
+            - build
+
+    -   name: clean
+        image: automagistre/docker:stable
+        volumes:
+            -   name: docker.sock
+                path: /var/run/docker.sock
+        commands:
+            - |
+                for image in $(grep -ioP 'FROM .+ AS \K.+' Dockerfile) ; do
+                    docker rmi --force automagistre/$image:${DRONE_BUILD_NUMBER} || true
+                done
+        when:
+            status:
+                - success
+                - failure
+        depends_on:
+            - push
+
+---
+kind: pipeline
+type: docker
+name: dependabot
+
+trigger:
+    branch:
+        - master
+    event:
+        - pull_request
+clone:
+    disable: true
+
+steps:
+    -   name: check is dependabot
+        image: automagistre/git:stable
+        pull: if-not-exists
+        commands:
+            - \[ "dependabot[bot]" == ${DRONE_COMMIT_AUTHOR} ] || exit 78
+
+    -   name: clone
+        image: automagistre/git:stable
+        pull: if-not-exists
+        commands:
+            - git clone --depth 2 -b ${DRONE_SOURCE_BRANCH} ${DRONE_REMOTE_URL} .
+            - git reset --hard ${DRONE_COMMIT_SHA}
+        depends_on:
+            - check is dependabot
+
+    -   name: automerge
+        image: automagistre/github-cli:stable
+        pull: if-not-exists
+        commands:
+            - gh pr merge ${DRONE_PULL_REQUEST} --auto --rebase
+        environment:
+            GITHUB_TOKEN:
+                from_secret: GITHUB_TOKEN
+        depends_on:
+            - clone
+
+    -   name: rebase
+        image: automagistre/github-cli:stable
+        pull: if-not-exists
+        commands:
+            - |
+                if [ "$$(git rev-parse HEAD^1)" != "$$(git ls-remote origin ${DRONE_COMMIT_BRANCH} | awk '{ print $1}')" ]
+                then
+                    gh pr comment ${DRONE_PULL_REQUEST} --body "@dependabot rebase"
+                fi
+        environment:
+            GITHUB_TOKEN:
+                from_secret: GITHUB_TOKEN
+        depends_on:
+            - clone
