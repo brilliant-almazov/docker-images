@@ -25,7 +25,7 @@ steps:
         commands:
             - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
             - |
-                for image in $(grep -oP 'FROM .+ AS \K.+' Dockerfile) ; do
+                for image in $(grep -ioP 'FROM .+ AS \K.+' Dockerfile) ; do
                     docker build -t "automagistre/$image:stable" --progress=plain --target $image .
                     docker push "automagistre/$image:stable"
                 done
