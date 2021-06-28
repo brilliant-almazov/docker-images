@@ -16,37 +16,21 @@ environment:
     DOCKER_CONFIG: /drone/src/.docker
 
 steps:
-    - &docker
-        name: docker login
-        image: docker:20.10.1
+    -   name: build and push
+        image: automagistre/docker:stable
+        pull: if-not-exists
         volumes:
             -   name: docker.sock
                 path: /var/run/docker.sock
         commands:
             - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+            - |
+                for image in $(grep -oP 'FROM .+ AS \K.+' Dockerfile) ; do
+                    docker build -t "automagistre/$image:stable" --progress=plain --target $image .
+                    docker push "automagistre/$image:stable"
+                done
         environment:
             DOCKER_USERNAME:
                 from_secret: docker_username
             DOCKER_PASSWORD:
                 from_secret: docker_password
-
-    - &builder
-        <<: *docker
-        name: docker
-        commands:
-            - docker build -t "automagistre/$DRONE_STEP_NAME:stable" --progress=plain --target "$DRONE_STEP_NAME" .
-            - docker push "automagistre/$DRONE_STEP_NAME:stable"
-        depends_on:
-            - docker login
-
-    -   <<: *builder
-        name: git
-
-    -   <<: *builder
-        name: wait-for-it
-
-    -   <<: *builder
-        name: docker-compose
-
-    -   <<: *builder
-        name: github-cli
