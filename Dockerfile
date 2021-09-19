@@ -46,3 +46,10 @@ RUN --mount=type=cache,target=/var/cache/apk \
     && chmod +x /bin/gh \
     && apk del .build-deps \
     && rm -rf gh_${GITHUB_CLI_VERSION}_linux_amd64
+
+#
+# OAuth2 Proxy
+#
+FROM quay.io/oauth2-proxy/oauth2-proxy:v7.1.3 AS oauth2-proxy
+
+CMD "--http-address=:80 --upstream=${UPSTREAM} --reverse-proxy=true --cookie-secret=${COOKIE_SECRET} --email-domain=* --allowed-group=${ALLOWED_GROUP:admin} --provider=keycloak --skip-provider-button=true --redirect-url=https://${SUBDOMAIN}.automagistre.ru/oauth2/callback --scope=openid --client-id=${CLIENT_ID} --client-secret=${CLIENT_SECRET} --login-url=https://auth.automagistre.ru/auth/realms/automagistre/protocol/openid-connect/auth --redeem-url=https://auth.automagistre.ru/auth/realms/automagistre/protocol/openid-connect/token --profile-url=https://auth.automagistre.ru/auth/realms/automagistre/protocol/openid-connect/userinfo --validate-url=https://auth.automagistre.ru/auth/realms/automagistre/protocol/openid-connect/userinfo"
