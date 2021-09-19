@@ -50,7 +50,9 @@ steps:
             DOCKER_PASSWORD:
                 from_secret: docker_password
         when:
-            branch: master
+            branch:
+                - master
+                - rc
         depends_on:
             - build
 
