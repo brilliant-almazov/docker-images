@@ -16,7 +16,7 @@ ENV DOCKER_BUILDKIT 1
 #
 # Wait For It
 #
-FROM alpine:3.14.0 AS wait-for-it
+FROM alpine:3.14.2 AS wait-for-it
 ENV WAIT_FOR_IT /wait-for-it.sh
 RUN --mount=type=cache,target=/var/cache/apk \
     set -ex \
@@ -34,7 +34,7 @@ FROM docker/compose:1.29.2 as docker-compose
 #
 # GitHub CLI
 #
-FROM alpine:3.14.0 AS github-cli
+FROM alpine:3.14.2 AS github-cli
 ENV GITHUB_CLI_VERSION 1.11.0
 
 RUN --mount=type=cache,target=/var/cache/apk \
